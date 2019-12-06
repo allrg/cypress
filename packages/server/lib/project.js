@@ -1,19 +1,3 @@
-/* eslint-disable
-    brace-style,
-    constructor-super,
-    no-console,
-    no-constant-condition,
-    no-this-before-super,
-*/
-// TODO: This file was created by bulk-decaffeinate.
-// Fix any style issues and re-enable lint.
-/*
- * decaffeinate suggestions:
- * DS001: Remove Babel/TypeScript constructor workaround
- * DS102: Remove unnecessary code created because of implicit returns
- * DS207: Consider shorter variations of null checks
- * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
- */
 const _ = require('lodash')
 const R = require('ramda')
 const EE = require('events')
@@ -51,19 +35,7 @@ const multipleForwardSlashesRe = /[^:\/\/](\/{2,})/g
 
 class Project extends EE {
   constructor (projectRoot) {
-    {
-      // Hack: trick Babel/TypeScript into allowing this before super.
-      if (false) {
-        super()
-      }
-
-      let thisFn = (() => {
-        return this
-      }).toString()
-      let thisName = thisFn.match(/return (?:_assertThisInitialized\()*(\w+)\)*;/)[1]
-
-      eval(`${thisName} = this;`)
-    }
+    super()
     this.getConfig = this.getConfig.bind(this)
     if (!(this instanceof Project)) {
       return new Project(projectRoot)
@@ -107,6 +79,7 @@ class Project extends EE {
 
     if (process.env.CYPRESS_MEMORY) {
       const logMemory = () => {
+        // eslint-disable-next-line no-console
         return console.log('memory info', process.memoryUsage())
       }
 
@@ -655,10 +628,9 @@ class Project extends EE {
 
   static getPathsAndIds () {
     return cache.getProjectRoots()
-    .map((projectRoot) =>
-    // this assumes that the configFile for a cached project is 'cypress.json'
-    // https://git.io/JeGyF
-    {
+    .map((projectRoot) => {
+      // this assumes that the configFile for a cached project is 'cypress.json'
+      // https://git.io/JeGyF
       return Promise.props({
         path: projectRoot,
         id: settings.id(projectRoot),

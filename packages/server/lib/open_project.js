@@ -1,24 +1,8 @@
-/* eslint-disable
-    brace-style,
-    no-unused-vars,
-    prefer-spread,
-*/
-// TODO: This file was created by bulk-decaffeinate.
-// Fix any style issues and re-enable lint.
-/*
- * decaffeinate suggestions:
- * DS102: Remove unnecessary code created because of implicit returns
- * DS207: Consider shorter variations of null checks
- * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
- */
 const _ = require('lodash')
 const la = require('lazy-ass')
 const debug = require('debug')('cypress:server:openproject')
 const Promise = require('bluebird')
-const path = require('path')
 const chokidar = require('chokidar')
-const files = require('./controllers/files')
-const config = require('./config')
 const Project = require('./project')
 const browsers = require('./browsers')
 const specsUtil = require('./util/specs')
@@ -205,10 +189,9 @@ const moduleFactory = function () {
           createSpecsWatcher(cfg)
 
           return specsUtil.find(cfg)
-        }).then((specs = []) =>
-        // TODO: put back 'integration' property
-        // on the specs
-        {
+        }).then((specs = []) => {
+          // TODO: put back 'integration' property
+          // on the specs
           return {
             integration: specs,
           }
