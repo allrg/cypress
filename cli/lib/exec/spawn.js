@@ -73,15 +73,10 @@ module.exports = {
 
     debug('needs to start own Xvfb?', needsXvfb)
 
-    // 1. Start arguments with "--" so Electron knows these are OUR
-    // arguments and does not try to sanitize them. Otherwise on Windows
-    // an url in one of the arguments crashes it :(
-    // https://github.com/cypress-io/cypress/issues/5466
-
-    // 2. Always push cwd into the args
+    // always push cwd into the args
     // which additionally acts as a signal to the
     // binary that it was invoked through the NPM module
-    args = ['--'].concat(args, '--cwd', process.cwd())
+    args = [].concat(args, '--cwd', process.cwd())
 
     _.defaults(options, {
       dev: false,
@@ -104,8 +99,6 @@ module.exports = {
           args.unshift(
             path.resolve(__dirname, '..', '..', '..', 'scripts', 'start.js')
           )
-
-          debug('in dev mode the args became %o', args)
         }
 
         const { onStderrData, electronLogging } = overrides
@@ -113,10 +106,8 @@ module.exports = {
         const electronArgs = _.clone(args)
         const node11WindowsFix = isPlatform('win32')
 
-        if (!options.dev && verify.needsSandbox()) {
-          // this is one of the Electron's command line switches
-          // thus it needs to be before "--" separator
-          electronArgs.unshift('--no-sandbox')
+        if (verify.needsSandbox()) {
+          electronArgs.push('--no-sandbox')
         }
 
         // strip dev out of child process options

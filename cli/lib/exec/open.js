@@ -11,6 +11,10 @@ module.exports = {
 
     const args = []
 
+    if (options.env) {
+      args.push('--env', options.env)
+    }
+
     if (options.config) {
       args.push('--config', options.config)
     }
@@ -21,10 +25,6 @@ module.exports = {
 
     if (options.browser) {
       args.push('--browser', options.browser)
-    }
-
-    if (options.env) {
-      args.push('--env', options.env)
     }
 
     if (options.port) {

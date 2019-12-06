@@ -1,14 +1,7 @@
 const $ = Cypress.$.bind(Cypress)
 const { _ } = Cypress
 const { Promise } = Cypress
-const { getCommandLogWithText,
-  findReactInstance,
-  withMutableReporterState,
-  attachListeners,
-  shouldBeCalledWithCount,
-  shouldBeCalledOnce,
-  shouldNotBeCalled,
-} = require('../../../support/utils')
+const { getCommandLogWithText, findReactInstance, withMutableReporterState, attachListeners, shouldBeCalledWithCount } = require('../../../support/utils')
 
 const keyEvents = [
   'keydown',
@@ -992,49 +985,6 @@ describe('src/cy/commands/actions/type', () => {
         })
       })
 
-      // https://github.com/cypress-io/cypress/issues/5703
-      it('overwrites text when selectAll in focus handler', () => {
-        const input = cy.$$('#input-without-value')
-
-        input
-        .val('f')
-        .on('focus', (e) => {
-          e.currentTarget.select()
-        })
-
-        cy.get('#input-without-value')
-        .type('foo')
-        .should('have.value', 'foo')
-      })
-
-      it('overwrites text when selectAll in focus handler in number', () => {
-        const input = cy.$$('#number-without-value')
-
-        input
-        .val('1')
-        .on('focus', (e) => {
-          e.currentTarget.select()
-        })
-
-        cy.get('#number-without-value')
-        .type('10')
-        .should('have.value', '10')
-      })
-
-      it('overwrites text when selectAll in focus handler in email', () => {
-        const input = cy.$$('#email-without-value')
-
-        input
-        .val('b')
-        .on('focus', (e) => {
-          e.currentTarget.select()
-        })
-
-        cy.get('#email-without-value')
-        .type('b@foo.com')
-        .should('have.value', 'b@foo.com')
-      })
-
       it('overwrites text when selectAll in mouseup handler', () => {
         cy.$$('#input-without-value').val('0').mouseup(function () {
           $(this).select()
@@ -1620,33 +1570,19 @@ describe('src/cy/commands/actions/type', () => {
         })
 
         it('inserts text with only one input event', () => {
-          const ce = cy.$$('#input-types [contenteditable]')
-
-          attachKeyListeners({ ce })
-
-          cy.get('#input-types [contenteditable]')
-          .invoke('text', 'foo')
-          .type('f')
-          .should(($text) => {
-            expect(trimInnerText($text)).eq('foof')
-          })
-
-          cy.getAll('ce', 'keydown keypress textInput input keyup').each(shouldBeCalledOnce)
-        })
-
-        it('{enter} inserts text with only one input event', () => {
-          const ce = cy.$$('#input-types [contenteditable]')
-
-          attachKeyListeners({ ce })
+          const onInput = cy.stub()
+          const onTextInput = cy.stub()
 
           cy.get('#input-types [contenteditable]')
+
           .invoke('text', 'foo')
-          .type('{enter}')
-          .should(($text) => {
+          .then(($el) => $el.on('input', onInput))
+          .then(($el) => $el.on('input', onTextInput))
+          .type('\n').then(($text) => {
             expect(trimInnerText($text)).eq('foo')
           })
-
-          cy.getAll('ce', 'keydown keypress textInput input keyup').each(shouldBeCalledOnce)
+          .then(() => expect(onInput).to.be.calledOnce)
+          .then(() => expect(onTextInput).to.be.calledOnce)
         })
 
         it('can type into [contenteditable] with existing <div>', () => {
@@ -1974,138 +1910,6 @@ describe('src/cy/commands/actions/type', () => {
             done()
           })
         })
-
-        it('correct events in input', () => {
-          const input = cy.$$(':text:first')
-
-          attachKeyListeners({ input })
-
-          cy.get(':text:first').invoke('val', 'ab')
-          .focus()
-          .type('{backspace}')
-          .should('have.value', 'a')
-
-          cy.getAll('input', 'keydown input keyup').each(shouldBeCalledOnce)
-          cy.getAll('input', 'keypress textInput').each(shouldNotBeCalled)
-        })
-
-        it('correct events in input with selection', () => {
-          const input = cy.$$(':text:first')
-
-          attachKeyListeners({ input })
-
-          cy.get(':text:first').invoke('val', 'ab')
-          .focus()
-          .type('{selectall}{backspace}')
-          .should('have.value', '')
-
-          cy.getAll('input', 'keydown input keyup').each(shouldBeCalledOnce)
-          cy.getAll('input', 'keypress textInput').each(shouldNotBeCalled)
-        })
-
-        it('correct events in input when noop', () => {
-          const input = cy.$$(':text:first')
-
-          attachKeyListeners({ input })
-
-          cy.get(':text:first').invoke('val', 'ab')
-          .then(($input) => $input[0].setSelectionRange(0, 0))
-          .focus()
-          .type('{backspace}')
-          .should('have.value', 'ab')
-
-          cy.getAll('input', 'keydown keyup').each(shouldBeCalledOnce)
-          cy.getAll('input', 'keypress textInput input').each(shouldNotBeCalled)
-        })
-
-        it('correct events in textarea', () => {
-          const textarea = cy.$$('textarea:first')
-
-          attachKeyListeners({ textarea })
-
-          cy.get('textarea:first').invoke('val', 'ab')
-          .focus()
-          .type('{backspace}')
-          .should('have.value', 'a')
-
-          cy.getAll('textarea', 'keydown input keyup').each(shouldBeCalledOnce)
-          cy.getAll('textarea', 'keypress textInput').each(shouldNotBeCalled)
-        })
-
-        it('correct events in textarea with selection', () => {
-          const textarea = cy.$$('textarea:first')
-
-          attachKeyListeners({ textarea })
-
-          cy.get('textarea:first').invoke('val', 'ab')
-          .focus()
-          .type('{selectall}{backspace}')
-          .should('have.value', '')
-
-          cy.getAll('textarea', 'keydown input keyup').each(shouldBeCalledOnce)
-          cy.getAll('textarea', 'keypress textInput').each(shouldNotBeCalled)
-        })
-
-        it('correct events in textarea when noop', () => {
-          const input = cy.$$('textarea:first')
-
-          attachKeyListeners({ input })
-
-          cy.get('textarea:first').invoke('val', 'ab')
-          .then(($textarea) => $textarea[0].setSelectionRange(0, 0))
-          .focus()
-          .type('{backspace}')
-          .should('have.value', 'ab')
-
-          cy.getAll('input', 'keydown keyup').each(shouldBeCalledOnce)
-          cy.getAll('input', 'keypress textInput input').each(shouldNotBeCalled)
-        })
-
-        it('correct events in contenteditable', () => {
-          const ce = cy.$$('[contenteditable]:first')
-
-          attachKeyListeners({ ce })
-
-          cy.get('[contenteditable]:first').invoke('text', 'ab')
-          .scrollIntoView()
-          .type('{backspace}')
-          .should('have.text', 'a')
-
-          cy.getAll('ce', 'keydown input keyup').each(shouldBeCalledOnce)
-          cy.getAll('ce', 'keypress textInput').each(shouldNotBeCalled)
-        })
-
-        it('correct events in contenteditable with selection', () => {
-          const ce = cy.$$('[contenteditable]:first')
-
-          attachKeyListeners({ ce })
-
-          cy.get('[contenteditable]:first').invoke('text', 'ab')
-          .scrollIntoView()
-          .type('{moveToEnd}')
-          .then(($el) => {
-            $el[0].ownerDocument.getSelection().modify('extend', 'backward', 'character')
-          })
-          .type('{backspace}')
-          .should('have.text', 'a')
-
-          cy.getAll('ce', 'keydown input keyup').each(shouldBeCalledOnce)
-          cy.getAll('ce', 'keypress textInput').each(shouldNotBeCalled)
-        })
-
-        it('correct events in contenteditable when noop', () => {
-          const ce = cy.$$('[contenteditable]:first')
-
-          attachKeyListeners({ ce })
-
-          cy.get('[contenteditable]:first').invoke('text', 'ab')
-          .focus()
-          .type('{backspace}')
-          .should('have.text', 'ab')
-
-          cy.getAll('ce', 'keydown keyup').each(shouldBeCalledOnce)
-          cy.getAll('ce', 'keypress textInput input').each(shouldNotBeCalled)
-        })
       })
 
       context('{del}', () => {
@@ -2141,139 +1945,37 @@ describe('src/cy/commands/actions/type', () => {
           cy.get(':text:first').invoke('val', 'ab').type('{leftarrow}{del}')
         })
 
-        it('correct events in input', () => {
-          const input = cy.$$(':text:first')
-
-          attachKeyListeners({ input })
-
-          cy.get(':text:first').invoke('val', 'ab')
-
-          .then(($input) => $input[0].setSelectionRange(0, 0))
-          .focus()
-          .type('{del}')
-          .should('have.value', 'b')
-
-          cy.getAll('input', 'keydown input keyup').each(shouldBeCalledOnce)
-          cy.getAll('input', 'keypress textInput').each(shouldNotBeCalled)
-        })
-
-        it('correct events in input with selection', () => {
-          const input = cy.$$(':text:first')
-
-          attachKeyListeners({ input })
-
-          cy.get(':text:first').invoke('val', 'ab')
-
-          .then(($input) => $input[0].setSelectionRange(0, 0))
-          .focus()
-          .type('{selectall}{del}')
-          .should('have.value', '')
-
-          cy.getAll('input', 'keydown input keyup').each(shouldBeCalledOnce)
-          cy.getAll('input', 'keypress textInput').each(shouldNotBeCalled)
-        })
-
-        it('correct events in input when noop', () => {
-          const input = cy.$$(':text:first')
-
-          attachKeyListeners({ input })
-
-          cy.get(':text:first').invoke('val', 'ab')
-          .focus()
-          .type('{del}')
-          .should('have.value', 'ab')
-
-          cy.getAll('input', 'keydown keyup').each(shouldBeCalledOnce)
-          cy.getAll('input', 'keypress textInput input').each(shouldNotBeCalled)
-        })
-
-        it('correct events in textarea', () => {
-          const textarea = cy.$$('textarea:first')
-
-          attachKeyListeners({ textarea })
-
-          cy.get('textarea:first').invoke('val', 'ab')
-          .then(($textarea) => $textarea[0].setSelectionRange(0, 0))
-          .focus()
-          .type('{del}')
-          .should('have.value', 'b')
-
-          cy.getAll('textarea', 'keydown input keyup').each(shouldBeCalledOnce)
-          cy.getAll('textarea', 'keypress textInput').each(shouldNotBeCalled)
-        })
-
-        it('correct events in textarea with selection', () => {
-          const textarea = cy.$$('textarea:first')
-
-          attachKeyListeners({ textarea })
-
-          cy.get('textarea:first').invoke('val', 'ab')
-          .then(($textarea) => $textarea[0].setSelectionRange(0, 0))
-          .focus()
-          .type('{selectall}{del}')
-          .should('have.value', '')
-
-          cy.getAll('textarea', 'keydown input keyup').each(shouldBeCalledOnce)
-          cy.getAll('textarea', 'keypress textInput').each(shouldNotBeCalled)
-        })
-
-        it('correct events in textarea when noop', () => {
-          const input = cy.$$('textarea:first')
-
-          attachKeyListeners({ input })
-
-          cy.get('textarea:first').invoke('val', 'ab')
-          .scrollIntoView()
-          .type('{del}')
-          .should('have.value', 'ab')
-
-          cy.getAll('input', 'keydown keyup').each(shouldBeCalledOnce)
-          cy.getAll('input', 'keypress textInput input').each(shouldNotBeCalled)
-        })
-
-        it('correct events in contenteditable', () => {
-          const ce = cy.$$('[contenteditable]:first')
-
-          attachKeyListeners({ ce })
-
-          cy.get('[contenteditable]:first').invoke('text', 'ab')
-          .focus()
-          .type('{del}')
-          .should('have.text', 'b')
-
-          cy.getAll('ce', 'keydown input keyup').each(shouldBeCalledOnce)
-          cy.getAll('ce', 'keypress textInput').each(shouldNotBeCalled)
-        })
-
-        it('correct events in contenteditable with selection', () => {
-          const ce = cy.$$('[contenteditable]:first')
-
-          attachKeyListeners({ ce })
-
-          cy.get('[contenteditable]:first').invoke('text', 'ab')
-          .type('{moveToStart}')
-          .then(($el) => {
-            $el[0].ownerDocument.getSelection().modify('extend', 'forward', 'character')
+        it('does not fire textInput event', (done) => {
+          cy.$$(':text:first').on('textInput', (e) => {
+            done('textInput should not have fired')
           })
-          .type('{del}')
-          .should('have.text', 'b')
 
-          cy.getAll('ce', 'keydown input keyup').each(shouldBeCalledOnce)
-          cy.getAll('ce', 'keypress textInput').each(shouldNotBeCalled)
+          cy.get(':text:first').invoke('val', 'ab').type('{del}').then(() => {
+            done()
+          })
         })
 
-        it('correct events in contenteditable when noop', () => {
-          const ce = cy.$$('[contenteditable]:first')
+        it('{del} does fire input event when value changes', () => {
+          const onInput = cy.stub()
 
-          attachKeyListeners({ ce })
+          cy.$$(':text:first').on('input', onInput)
 
-          cy.get('[contenteditable]:first').invoke('text', 'ab')
-          .scrollIntoView()
-          .type('{del}')
-          .should('have.text', 'ab')
+          // select the 'a' characters
+          cy
+          .get(':text:first').invoke('val', 'bar').focus().then(($input) => {
+            $input.get(0).setSelectionRange(0, 1)
+          }).get(':text:first').type('{del}')
+          .then(() => expect(onInput).to.be.calledOnce)
+        })
 
-          cy.getAll('ce', 'keydown keyup').each(shouldBeCalledOnce)
-          cy.getAll('ce', 'keypress textInput input').each(shouldNotBeCalled)
+        it('does not fire input event when value does not change', (done) => {
+          cy.$$(':text:first').on('input', (e) => {
+            done('should not have fired input')
+          })
+
+          cy.get(':text:first').invoke('val', 'ab').type('{del}').then(() => {
+            done()
+          })
         })
 
         it('can prevent default del movement', (done) => {
@@ -2841,68 +2543,14 @@ describe('src/cy/commands/actions/type', () => {
           })
         })
 
-        it('{enter} correct events in input', () => {
-          const input = cy.$$(':text:first')
-
-          attachKeyListeners({ input })
-
-          cy.get(':text:first')
-          .invoke('val', 'ab')
-          .type('{enter}')
-          .should('have.value', 'ab')
-
-          cy.getAll('input', 'keydown keypress keyup').each(shouldBeCalledOnce)
-          cy.getAll('input', 'textInput input').each(shouldNotBeCalled)
-        })
-
-        it('{enter} correct events in [contenteditable]', () => {
-          const ce = cy.$$('[contenteditable]:first')
-
-          attachKeyListeners({ ce })
-
-          cy.get('[contenteditable]:first')
-          .focus()
-          .invoke('val', 'ab')
-          .type('{enter}')
-          .should('have.value', 'ab')
-
-          cy.getAll('ce', 'keydown keypress keyup input textInput').each(shouldBeCalledOnce)
-        })
-
-        it('{enter} correct events in textarea', () => {
-          const input = cy.$$('textarea:first')
-
-          attachKeyListeners({ input })
-
-          cy.get('textarea:first')
-          .invoke('val', 'foo')
-          .scrollIntoView()
-          .type('{enter}')
-          .should('have.value', 'foo\n')
-
-          cy.getAll('input', 'keydown keyup keypress input textInput').each(shouldBeCalledOnce)
-        })
-
-        it('{enter} correct events in textarea when preventDefault', () => {
-          const input = cy.$$('textarea:first')
-
-          attachKeyListeners({ input })
-
-          input.on('keydown', (e) => {
-            if (e.key === 'Enter') {
-              e.stopPropagation()
-              e.preventDefault()
-            }
+        it('does not fire textInput event', (done) => {
+          cy.$$(':text:first').on('textInput', (e) => {
+            done('textInput should not have fired')
           })
 
-          cy.get('textarea:first')
-          .invoke('val', 'foo')
-          .scrollIntoView()
-          .type('{enter}')
-          .should('have.value', 'foo')
-
-          cy.getAll('input', 'keydown keyup').each(shouldBeCalledOnce)
-          cy.getAll('input', 'keypress textInput input').each(shouldNotBeCalled)
+          cy.get(':text:first').invoke('val', 'ab').type('{enter}').then(() => {
+            done()
+          })
         })
 
         it('does not fire input event when no text inserted', (done) => {
@@ -5293,7 +4941,7 @@ https://on.cypress.io/type`)
       })
     })
 
-    it('can force clear even when being covered by another element', () => {
+    it('can forcibly click even when being covered by another element', () => {
       const $input = $('<input />')
       .attr('id', 'input-covered-in-span')
       .prependTo(cy.$$('body'))
@@ -5316,37 +4964,6 @@ https://on.cypress.io/type`)
       cy.get('#input-covered-in-span').clear({ force: true }).then(() => {
         expect(clicked).to.be.called
       })
-    })
-
-    // https://github.com/cypress-io/cypress/issues/5835
-    it('can force clear when hidden in input', () => {
-      const input = cy.$$('input:first')
-      .val('foo')
-      .hide()
-
-      attachKeyListeners({ input })
-      cy.get('input:first')
-      .focus()
-      .clear({ force: true })
-      .should('have.value', '')
-
-      cy.getAll('input', 'keydown input keyup').each(shouldBeCalledOnce)
-      cy.getAll('input', 'textInput keypress').each(shouldNotBeCalled)
-    })
-
-    it('can force clear when hidden in textarea', () => {
-      const textarea = cy.$$('textarea:first')
-      .val('foo')
-      .hide()
-
-      attachKeyListeners({ textarea })
-      cy.get('textarea:first')
-      .focus()
-      .clear({ force: true })
-      .should('have.value', '')
-
-      cy.getAll('textarea', 'keydown input keyup').each(shouldBeCalledOnce)
-      cy.getAll('textarea', 'textInput keypress').each(shouldNotBeCalled)
     })
 
     it('passes timeout and interval down to click', (done) => {

@@ -29,13 +29,14 @@
     cursor: pointer;
     border-radius: 0;
     display: block;
-    font-size: 15px;
+    font-size: 17px;
     font-weight: 500;
     line-height: 1.4;
     outline: 0;
     padding: 10px 16px;
     text-align: center;
     touch-action: manipulation;
+    vertical-align: middle;
     white-space: nowrap;
     user-select: none;
 
@@ -255,7 +256,7 @@
         font-size: 14px;
       }
 
-      .fa-square {
+      .fa-square-o {
         top: 0px;
         left: 0px;
         font-size: 22px;

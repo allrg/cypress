@@ -1,10 +1,10 @@
 exports['exec run .processRunOptions does not remove --record option when using --browser 1'] = [
   "--run-project",
   null,
-  "--browser",
-  "test browser",
   "--record",
-  "foo"
+  "foo",
+  "--browser",
+  "test browser"
 ]
 
 exports['exec run .processRunOptions passes --browser option 1'] = [

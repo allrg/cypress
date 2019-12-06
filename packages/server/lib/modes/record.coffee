@@ -79,11 +79,10 @@ throwIfIndeterminateCiBuildId = (ciBuildId, parallel, group) ->
       ciProvider.detectableCiBuildIdProviders()
     )
 
-throwIfRecordParamsWithoutRecording = (record, ciBuildId, parallel, group, tag) ->
-  if not record and _.some([ciBuildId, parallel, group, tag])
+throwIfRecordParamsWithoutRecording = (record, ciBuildId, parallel, group) ->
+  if not record and _.some([ciBuildId, parallel, group])
     errors.throw("RECORD_PARAMS_WITHOUT_RECORDING", {
       ciBuildId,
-      tag,
       group,
       parallel
     })
@@ -252,12 +251,11 @@ gracePeriodMessage = (gracePeriodEnds) ->
 createRun = Promise.method (options = {}) ->
   _.defaults(options, {
     group: null,
-    tags: null,
     parallel: null,
     ciBuildId: null,
   })
 
-  { projectId, recordKey, platform, git, specPattern, specs, parallel, ciBuildId, group, tags } = options
+  { projectId, recordKey, platform, git, specPattern, specs, parallel, ciBuildId, group } = options
 
   recordKey ?= env.get("CYPRESS_RECORD_KEY") or env.get("CYPRESS_CI_KEY")
 
@@ -290,7 +288,6 @@ createRun = Promise.method (options = {}) ->
     api.createRun({
       specs
       group
-      tags
       parallel
       platform
       ciBuildId
@@ -387,7 +384,6 @@ createRun = Promise.method (options = {}) ->
               response: err,
               flags: {
                 group,
-                tags,
                 parallel,
                 ciBuildId,
               },
@@ -425,14 +421,12 @@ createRun = Promise.method (options = {}) ->
             })
           when "PARALLEL_DISALLOWED"
             errors.throw("DASHBOARD_PARALLEL_DISALLOWED", {
-              tags,
               group,
               runUrl,
               ciBuildId,
             })
           when "PARALLEL_REQUIRED"
             errors.throw("DASHBOARD_PARALLEL_REQUIRED", {
-              tags,
               group,
               runUrl,
               ciBuildId,
@@ -440,7 +434,6 @@ createRun = Promise.method (options = {}) ->
           when "ALREADY_COMPLETE"
             errors.throw("DASHBOARD_ALREADY_COMPLETE", {
               runUrl,
-              tags,
               group,
               parallel,
               ciBuildId,
@@ -448,7 +441,6 @@ createRun = Promise.method (options = {}) ->
           when "STALE_RUN"
             errors.throw("DASHBOARD_STALE_RUN", {
               runUrl,
-              tags,
               group,
               parallel,
               ciBuildId,
@@ -457,7 +449,6 @@ createRun = Promise.method (options = {}) ->
             errors.throw("DASHBOARD_UNKNOWN_INVALID_REQUEST", {
               response: err,
               flags: {
-                tags,
                 group,
                 parallel,
                 ciBuildId,
@@ -521,10 +512,8 @@ createInstance = (options = {}) ->
 
 createRunAndRecordSpecs = (options = {}) ->
   { specPattern, specs, sys, browser, projectId, projectRoot, runAllSpecs, parallel, ciBuildId, group } = options
-  recordKey = options.key
 
-  # we want to normalize this to an array to send to API
-  tags = _.split(options.tag, ',')
+  recordKey = options.key
 
   commitInfo.commitInfo(projectRoot)
   .then (git) ->
@@ -544,7 +533,6 @@ createRunAndRecordSpecs = (options = {}) ->
       git
       specs
       group
-      tags
       parallel
       platform
       recordKey

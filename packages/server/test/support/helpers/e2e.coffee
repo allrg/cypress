@@ -436,9 +436,6 @@ module.exports = e2e = {
     if options.inspectBrk
       args.push("--inspect-brk")
 
-    if options.tag
-      args.push("--tag=#{options.tag}")
-
     return args
 
   start: (ctx, options = {}) ->

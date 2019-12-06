@@ -178,34 +178,35 @@ const dequote = (str) => {
 }
 
 const parseOpts = (opts) => {
-  opts = _.pick(opts,
+  opts = _.pick(
+    opts,
+    'project',
+    'spec',
+    'reporter',
+    'reporterOptions',
+    'path',
+    'destination',
+    'port',
+    'env',
+    'cypressVersion',
+    'config',
+    'record',
+    'key',
+    'configFile',
     'browser',
+    'detached',
+    'headed',
+    'global',
+    'dev',
+    'force',
+    'exit',
     'cachePath',
     'cacheList',
     'cacheClear',
-    'ciBuildId',
-    'config',
-    'configFile',
-    'cypressVersion',
-    'destination',
-    'detached',
-    'dev',
-    'exit',
-    'env',
-    'force',
-    'global',
-    'group',
-    'headed',
-    'key',
-    'path',
     'parallel',
-    'port',
-    'project',
-    'reporter',
-    'reporterOptions',
-    'record',
-    'spec',
-    'tag')
+    'group',
+    'ciBuildId'
+  )
 
   if (opts.exit) {
     opts = _.omit(opts, 'exit')
